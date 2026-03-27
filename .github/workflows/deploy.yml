@@ -47,10 +47,20 @@ jobs:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           SERVICE_NAME: flask-render-iac
         run: |
-          SERVICE_ID=$(curl -s \
+          RESPONSE=$(curl -s \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
-            https://api.render.com/v1/services \
-            | jq -r --arg NAME "$SERVICE_NAME" '.[] | select(.name==$NAME) | .id' \
+            https://api.render.com/v1/services)
+
+          echo "Services returned by Render:"
+          echo "$RESPONSE" | jq -r '.[] | select(.service != null) | .service.name'
+
+          SERVICE_ID=$(echo "$RESPONSE" \
+            | jq -r --arg NAME "$SERVICE_NAME" '
+                .[]
+                | select(type=="object" and .service != null)
+                | select(.service.name == $NAME)
+                | .service.id
+              ' \
             | head -n 1)
 
           if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
