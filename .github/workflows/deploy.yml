@@ -1,9 +1,9 @@
-name: edouard
+name: edouard 
 
 on:
 push:
 branches: [ "main" ]
-
+  
 permissions:
 contents: read
 packages: write
